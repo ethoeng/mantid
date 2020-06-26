@@ -79,6 +79,7 @@ Improvements
 - Right-clicking a plot without dragging while using the zoom tool now resets the axes limits.
 - The Slice Viewer now starts with the zoom option selected by default.
 - Added an option in the settings to specify the default legend size.
+- Colorfill plots of very large workspaces now take less than 10 seconds to plot 
 
 Bugfixes
 ########

@@ -39,6 +39,7 @@ Algorithms
    When such incomplete data is encountered, it is skipped until the next valid data is encountered and a
    warning is printed at algorithm completion of the total number of data bytes discarded.
 - A bug introduced in v5.0 causing error values to tend to zero on multiple instances of :ref:`Rebin2D <algm-Rebin2D>` on the same workspace has been fixed.
+- Algorithms now lazily load their documentation and function signatures, improving import times from the `simpleapi`.
 
 Data Handling
 -------------

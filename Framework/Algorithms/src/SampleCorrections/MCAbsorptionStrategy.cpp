@@ -40,7 +40,7 @@ MCAbsorptionStrategy::MCAbsorptionStrategy(
                                        beamProfile.defineActiveRegion(sample),
                                        maxScatterPtAttempts, pointsIn)),
       m_nevents(nevents), m_maxScatterAttempts(maxScatterPtAttempts),
-      m_error(1.0 / std::sqrt(m_nevents)), m_EMode(EMode),
+      m_EMode(EMode),
       m_regenerateTracksForEachLambda(regenerateTracksForEachLambda) {}
 
 /**
@@ -69,6 +69,8 @@ void MCAbsorptionStrategy::calculate(Kernel::PseudoRandomNumberGenerator &rng,
                                      MCInteractionStatistics &stats) {
   const auto scatterBounds = m_scatterVol.getBoundingBox();
   const auto nbins = static_cast<int>(lambdas.size());
+
+  std::vector<double> wgtMean(attenuationFactors.size());
 
   for (size_t i = 0; i < m_nevents; ++i) {
     Geometry::Track beforeScatter;
@@ -100,6 +102,10 @@ void MCAbsorptionStrategy::calculate(Kernel::PseudoRandomNumberGenerator &rng,
           const double wgt = m_scatterVol.calculateAbsorption(
               beforeScatter, afterScatter, lambdaIn, lambdaOut);
           attenuationFactors[j] += wgt;
+          // increment standard deviation using Welford algorithm
+          double delta = wgt - wgtMean[j];
+          wgtMean[j] += delta / (i + 1);
+          attFactorErrors[j] += delta * (wgt - wgtMean[j]);
 
           break;
         }
@@ -120,7 +126,11 @@ void MCAbsorptionStrategy::calculate(Kernel::PseudoRandomNumberGenerator &rng,
                  std::bind(std::divides<double>(), std::placeholders::_1,
                            static_cast<double>(m_nevents)));
 
-  std::fill(attFactorErrors.begin(), attFactorErrors.end(), m_error);
+  // calculate standard deviation
+  // will give NaN for m_events=1, but that's correct
+  std::transform(
+      attFactorErrors.begin(), attFactorErrors.end(), attFactorErrors.begin(),
+      [this](double v) -> double { return sqrt(v / (m_nevents - 1)); });
 }
 
 } // namespace Algorithms

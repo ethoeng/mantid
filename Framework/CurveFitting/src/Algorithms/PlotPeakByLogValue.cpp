@@ -161,6 +161,12 @@ void PlotPeakByLogValue::init() {
 
   declareProperty("IgnoreInvalidData", false,
                   "Flag to ignore infinities, NaNs and data with zero errors.");
+
+  declareProperty(std::make_unique<ArrayProperty<std::string>>(
+      "OutputStatus", Direction::Output));
+
+  declareProperty(std::make_unique<ArrayProperty<double>>("OutputChiSquared",
+                                                          Direction::Output));
 }
 
 /**
@@ -182,6 +188,9 @@ void PlotPeakByLogValue::exec() {
   bool outputCompositeMembers = getProperty("OutputCompositeMembers");
   bool outputConvolvedMembers = getProperty("ConvolveMembers");
   m_baseName = getPropertyValue("OutputWorkspace");
+
+  std::vector<std::string> fitStatus;
+  std::vector<double> fitChiSquared;
 
   bool isDataName = false; // if true first output column is of type string and
                            // is the data source name
@@ -241,6 +250,8 @@ void PlotPeakByLogValue::exec() {
 
     ifun = fit->getProperty("Function");
     double chi2 = fit->getProperty("OutputChi2overDoF");
+    fitStatus.emplace_back(fit->getProperty("OutputStatus"));
+    fitChiSquared.emplace_back(chi2);
 
     if (createFitOutput) {
       MatrixWorkspace_sptr outputFitWorkspace =
@@ -266,6 +277,9 @@ void PlotPeakByLogValue::exec() {
     progress(Prog, ("Fitting Workspace: (" + current + ") - "));
     interruption_point();
   }
+  setProperty("OutputStatus", fitStatus);
+  setProperty("OutputChiSquared", fitChiSquared);
+
   finaliseOutputWorkspaces(createFitOutput, fitWorkspaces, parameterWorkspaces,
                            covarianceWorkspaces);
 }

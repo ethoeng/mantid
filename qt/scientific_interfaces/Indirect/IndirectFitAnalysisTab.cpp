@@ -355,8 +355,9 @@ void IndirectFitAnalysisTab::updateFitOutput(bool error) {
   if (error) {
     m_fittingModel->cleanFailedRun(m_fittingAlgorithm);
     m_fittingAlgorithm.reset();
-  } else
+  } else {
     m_fittingModel->addOutput(m_fittingAlgorithm);
+  }
 }
 
 void IndirectFitAnalysisTab::updateSingleFitOutput(bool error) {
@@ -385,6 +386,7 @@ void IndirectFitAnalysisTab::fitAlgorithmComplete(bool error) {
   m_fitPropertyBrowser->setErrorsEnabled(!error);
   if (!error) {
     updateFitBrowserParameterValuesFromAlg();
+    updateFitStatus();
     setModelFitFunction();
   }
   m_spectrumPresenter->enableView();
@@ -460,7 +462,16 @@ void IndirectFitAnalysisTab::updateFitBrowserParameterValuesFromAlg() {
         "Warning issue updating parameter values in fit property browser");
   }
 }
-
+/**
+ * Updates the fit output status
+ */
+void IndirectFitAnalysisTab::updateFitStatus() {
+  std::vector<std::string> status =
+      m_fittingAlgorithm->getProperty("OutputStatus");
+  std::vector<double> chiSquared =
+      m_fittingAlgorithm->getProperty("OutputChiSquared");
+  m_fitPropertyBrowser->updateFitStatusData(status, chiSquared);
+}
 /**
  * Plots the spectra corresponding to the selected parameters
  */

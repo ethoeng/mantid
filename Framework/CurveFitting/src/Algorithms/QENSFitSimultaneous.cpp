@@ -18,6 +18,7 @@
 #include "MantidAPI/TextAxis.h"
 #include "MantidAPI/WorkspaceFactory.h"
 
+#include "MantidKernel/ArrayProperty.h"
 #include "MantidKernel/BoundedValidator.h"
 #include "MantidKernel/Exception.h"
 #include "MantidKernel/StartsWithValidator.h"
@@ -401,11 +402,10 @@ void QENSFitSimultaneous::initConcrete() {
                       PropertyMode::Optional),
                   "The output group workspace");
 
-  declareProperty("OutputStatus", "", Kernel::Direction::Output);
-  getPointerToProperty("OutputStatus")
-      ->setDocumentation("Whether the fit was successful");
-  declareProperty("OutputChi2overDoF", 0.0, "Returns the goodness of the fit",
-                  Kernel::Direction::Output);
+  declareProperty(std::make_unique<ArrayProperty<std::string>>(
+      "OutputStatus", Direction::Output));
+  declareProperty(std::make_unique<ArrayProperty<double>>("OutputChiSquared",
+                                                          Direction::Output));
 
   std::vector<std::string> costFuncOptions =
       API::CostFunctionFactory::Instance().getKeys();
@@ -508,6 +508,13 @@ QENSFitSimultaneous::performFit(
   fit->setProperty("CreateOutput", true);
   fit->setProperty("Output", output);
   fit->executeAsChildAlg();
+
+  std::string status = fit->getProperty("OutputStatus");
+  double chiSquared = fit->getProperty("OutputChi2overDoF");
+  setProperty("OutputStatus",
+              std::vector<std::string>(function->getNumberDomains(), status));
+  setProperty("OutputChiSquared",
+              std::vector<double>(function->getNumberDomains(), chiSquared));
 
   if (workspaces.size() == 1) {
     MatrixWorkspace_sptr outputWS = fit->getProperty("OutputWorkspace");

@@ -506,6 +506,11 @@ void QENSFitSequential::init() {
 
   declareProperty("IgnoreInvalidData", false,
                   "Flag to ignore infinities, NaNs and data with zero errors.");
+
+  declareProperty(std::make_unique<ArrayProperty<std::string>>(
+      "OutputStatus", Direction::Output));
+  declareProperty(std::make_unique<ArrayProperty<double>>("OutputChiSquared",
+                                                          Direction::Output));
 }
 
 std::map<std::string, std::string> QENSFitSequential::validateInputs() {
@@ -788,7 +793,16 @@ ITableWorkspace_sptr QENSFitSequential::performFit(const std::string &input,
   plotPeaks->setProperty("EvaluationType", getPropertyValue("EvaluationType"));
   plotPeaks->setProperty("FitType", getPropertyValue("FitType"));
   plotPeaks->setProperty("CostFunction", getPropertyValue("CostFunction"));
+
   plotPeaks->executeAsChildAlg();
+
+  std::vector<std::string> outputStatus =
+      plotPeaks->getProperty("OutputStatus");
+  std::vector<double> outputChiSquared =
+      plotPeaks->getProperty("OutputChiSquared");
+  setProperty("OutputStatus", std::move(outputStatus));
+  setProperty("OutputChiSquared", std::move(outputChiSquared));
+
   return plotPeaks->getProperty("OutputWorkspace");
 }
 

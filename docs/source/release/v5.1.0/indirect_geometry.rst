@@ -28,6 +28,7 @@ Improvements
 - Added docking and undocking to the plot window and function browser window for the fit tabs in Indirect Data Analysis on workbench.
 - Update the Indirect, Corrections user interface to use the :ref:`PaalmanPingsMonteCarloAbsorption <algm-PaalmanPingsMonteCarloAbsorption>` algorithm
 - OutputCompositeMembers and ConvolveOutputs have been added as options in the ConvFit tab of Indirect Data Analysis.
+- Added the fit output information (Algorithm status and Chi squared) to each fitting tab of the Indirect Data Analysis interface.
 
 Bug Fixes
 #########
